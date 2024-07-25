@@ -15,7 +15,8 @@ type OpenApi struct {
 	Url string `json:"url"`
 }
 type Configuration struct {
-	Bind BindConfiguration `json:"bind"`
+	Bind    BindConfiguration `json:"bind"`
+	OpenApi OpenApi           `json:"openapi"`
 }
 
 func InitConfig(file string) error {
