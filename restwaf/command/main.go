@@ -2,19 +2,12 @@ package main
 
 import (
 	"log"
-	"math/rand"
-	"net"
-	"os"
-
-	"github.com/negasus/haproxy-spoe-go/action"
-	"github.com/negasus/haproxy-spoe-go/agent"
-	"github.com/negasus/haproxy-spoe-go/logger"
-	"github.com/negasus/haproxy-spoe-go/request"
+	"restwaf/internal"
 )
 
 func main() {
 
-	log.Print("listen 3000")
+	/*log.Print("listen 3000")
 
 	listener, err := net.Listen("tcp4", "127.0.0.1:3000")
 	if err != nil {
@@ -27,36 +20,24 @@ func main() {
 
 	if err := a.Serve(listener); err != nil {
 		log.Printf("error agent serve: %+v\n", err)
+	}*/
+	var error = internal.InitConfig("/home/pilou/goprojects/restwaf/application.properties")
+	if error != nil {
+		log.Panicf("Error %v", error)
 	}
+
+	application, error := internal.CreateRestWaf()
+	if error != nil {
+		log.Panicf("Error %v", error)
+	}
+	application.Start()
 }
 
-func handler(req *request.Request) {
+/*func handler(req *request.Request) {
 
-	log.Printf("handle request EngineID: '%s', StreamID: '%d', FrameID: '%d' with %d messages\n", req.EngineID, req.StreamID, req.FrameID, req.Messages.Len())
-
-	messageName := "get-ip-reputation"
-
-	mes, err := req.Messages.GetByName(messageName)
-	if err != nil {
-		log.Printf("message %s not found: %v", messageName, err)
-		return
+	log.Printf("handle request EngineID: '%v'", req)
+	for _, s := range *req.Messages {
+		log.Printf("%s", s.Name)
 	}
 
-	ipValue, ok := mes.KV.Get("ip")
-	if !ok {
-		log.Printf("var 'ip' not found in message")
-		return
-	}
-
-	ip, ok := ipValue.(net.IP)
-	if !ok {
-		log.Printf("var 'ip' has wrong type. expect IP addr")
-		return
-	}
-
-	ipScore := rand.Intn(100)
-
-	log.Printf("IP: %s, send score '%d'", ip.String(), ipScore)
-
-	req.Actions.SetVar(action.ScopeSession, "ip_score", ipScore)
-}
+}*/

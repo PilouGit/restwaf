@@ -7,9 +7,11 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"restwaf/internal/model"
 
 	"github.com/negasus/haproxy-spoe-go/agent"
 	"github.com/negasus/haproxy-spoe-go/logger"
+	"github.com/negasus/haproxy-spoe-go/message"
 	"github.com/negasus/haproxy-spoe-go/request"
 	"github.com/pb33f/libopenapi"
 	validator "github.com/pb33f/libopenapi-validator"
@@ -60,16 +62,25 @@ func (application *Application) Start() {
 	}
 	defer listener.Close()
 
-	a := agent.New(handler, logger.NewDefaultLog())
+	a := agent.New(application.handler, logger.NewDefaultLog())
 
 	if err := a.Serve(listener); err != nil {
 		log.Printf("error agent serve: %+v\n", err)
 	}
 }
-func handler(req *request.Request) {
+func (application *Application) handler(req *request.Request) {
+	log.Printf("handle request EngineID: '%v'", req)
+	messsage, error := req.Messages.GetByName("coraza-req")
+	if error != nil {
+		log.Printf("var method  not found in message")
+		return
+	}
+	if messsage != nil {
+		application.processRequest(messsage)
+	}
 }
 
-func New() (*Application, error) {
+func CreateRestWaf() (*Application, error) {
 	var application = new(Application)
 	var error = application.readOpenApiFile()
 
@@ -79,4 +90,14 @@ func New() (*Application, error) {
 	}
 
 	return application, nil
+}
+
+func (application *Application) processRequest(message *message.Message) {
+
+	request := model.CreateRequest(message)
+	error := request.Init()
+	if error != nil {
+		log.Printf("error agent serve: %+v\n", error)
+	}
+
 }

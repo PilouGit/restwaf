@@ -6,7 +6,7 @@ import (
 
 func TestReadOpenApiFile(t *testing.T) {
 	TestInitConfig(t)
-	var application, err = New()
+	var application, err = CreateRestWaf()
 
 	if err != nil {
 		t.Fatalf(" %v, want ", err)
@@ -19,5 +19,6 @@ func TestReadOpenApiFile(t *testing.T) {
 	if application.Document == nil {
 		t.Fatalf("Document is nil")
 	}
+	application.Start()
 
 }
