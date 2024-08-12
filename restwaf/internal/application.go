@@ -6,6 +6,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"net/http/httputil"
 	"os"
 	"restwaf/internal/model"
 
@@ -99,5 +100,23 @@ func (application *Application) processRequest(message *message.Message) {
 	if error != nil {
 		log.Printf("error agent serve: %+v\n", error)
 	}
+	validator := *application.Validator
 
+	httprequest, error := request.ToHttpRequesst()
+	reqDump, err := httputil.DumpRequestOut(httprequest, true)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("REQUEST:\n%s", string(reqDump))
+
+	if error != nil {
+		log.Printf("error agent serve: %+v\n", error)
+	}
+	requestValid, validationErrors := validator.ValidateHttpRequest(httprequest)
+	if !requestValid {
+		for i := range validationErrors {
+			fmt.Println(validationErrors[i].Message) // or something.
+		}
+	}
 }
