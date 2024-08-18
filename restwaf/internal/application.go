@@ -38,6 +38,7 @@ func (application *Application) readOpenApiFile() error {
 	// close response body
 	response.Body.Close()
 	fmt.Println(string(body))
+
 	document, docErrs := libopenapi.NewDocument(body)
 
 	if docErrs != nil {

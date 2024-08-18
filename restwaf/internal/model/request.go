@@ -90,7 +90,7 @@ func (request *Request) Init() error {
 		return errors.New("  not found" + idCte)
 	} else {
 		log.Printf(" id %v", id)
-		request.id = fmt.Sprint(id)
+		request.Id = fmt.Sprint(id)
 	}
 	body, found := request.msg.KV.Get(bodyCte)
 	if !found {

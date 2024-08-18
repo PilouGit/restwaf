@@ -25,7 +25,7 @@ func (cache *RequestGCache) putRequest(request *model.Request) {
 func (cache *RequestGCache) getRequest(uid string) *model.Request {
 	gcache := cache.Gc
 	value, error := (*gcache).Get(uid)
-	if error != nil {
+	if error == nil {
 		return value.(*model.Request)
 	} else {
 		return nil
