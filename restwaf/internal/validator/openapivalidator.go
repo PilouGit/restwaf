@@ -15,16 +15,15 @@ type OpenApiValidator struct {
 	ResponseValidator *validator.Validator
 }
 
-func CreateOpenApiValidator(body []byte) (*OpenApiValidator, error) {
-	openApiValidator := new(OpenApiValidator)
+func (validator *OpenApiValidator) CreateOpenApiValidator(body []byte) error {
 
 	document, docErrs := libopenapi.NewDocument(body)
 	if docErrs != nil {
-		return nil, docErrs
+		return docErrs
 	}
-	openApiValidator.Document = &document
+	validator.Document = &document
 
-	return openApiValidator, nil
+	return nil
 
 }
 

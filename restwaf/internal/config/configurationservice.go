@@ -1,15 +1,12 @@
-package serviceconfig
+package config
 
 import (
 	"encoding/json"
 	"fmt"
 	"os"
-	modelconfig "restwaf/internal/config/model"
 )
 
-var configurationInstance *modelconfig.Configuration
-
-func ReadConfiguration(file string) error {
+func (configurationInstance *Configuration) ReadConfiguration(file string) error {
 	data, err := os.ReadFile(file)
 	if err != nil {
 		return err
@@ -25,7 +22,7 @@ func ReadConfiguration(file string) error {
 	return nil
 }
 
-func Validate() error {
+func (configurationInstance *Configuration) Validate() error {
 	error := configurationInstance.GlobalConfiguration.CacheConfiguration.Validate()
 	if error != nil {
 		return error

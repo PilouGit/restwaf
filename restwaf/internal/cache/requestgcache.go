@@ -10,7 +10,7 @@ type RequestGCache struct {
 	Gc *gcache.Cache
 }
 
-func CreateRequestGCache(nbTransation uint64) *RequestGCache {
+func CreateRequestGCache(nbTransation uint) *RequestGCache {
 	result := new(RequestGCache)
 	gcache := gcache.New(int(nbTransation)).LRU().
 		Build()

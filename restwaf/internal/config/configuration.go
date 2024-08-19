@@ -1,4 +1,4 @@
-package modelconfig
+package config
 
 type Configuration struct {
 	GlobalConfiguration  *GlobalConfiguration `json:"configuration" validate:"required"`

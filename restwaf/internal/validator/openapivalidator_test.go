@@ -22,7 +22,8 @@ func TestOpenApiValidator(t *testing.T) {
 	// close response body
 	response.Body.Close()
 	fmt.Println(string(body))
-	openapivalidator, error := CreateOpenApiValidator(body)
+	var openapivalidator = new(OpenApiValidator)
+	error = openapivalidator.CreateOpenApiValidator(body)
 	if error != nil {
 		t.Fatalf("request is nil %v", error)
 	}
