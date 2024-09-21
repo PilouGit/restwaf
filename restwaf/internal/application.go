@@ -51,6 +51,7 @@ func (application *Application) handler(req *request.Request) {
 	}
 	if messsage != nil {
 		application.processRequest(messsage)
+		//req.Actions.SetVar(action.ScopeSession, "ip_score", ipScore)
 	}
 }
 

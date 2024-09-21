@@ -67,15 +67,17 @@ func (engine *Engine) initWaf() error {
 	if wafConfiguration.Enabled {
 		var conf = coraza.NewWAFConfig()
 		for _, directiveFromFile := range wafConfiguration.DirectivesFromFile {
-			conf.WithDirectivesFromFile(directiveFromFile)
+			conf = conf.WithDirectivesFromFile(directiveFromFile)
 		}
-		conf.WithErrorCallback(logError)
-		conf.WithDebugLogger(debuglog.Default())
+		conf = conf.WithErrorCallback(logError)
+		conf = conf.WithDebugLogger(debuglog.Default())
+
 		waf, err := coraza.NewWAF(conf)
 		if err != nil {
 			engine.logger.Error("unable to create waf instance", zap.Error(err))
 			return err
 		}
+
 		engine.Waf = new(validator.WafValidator)
 		engine.Waf.CreateWafValidator(&waf)
 

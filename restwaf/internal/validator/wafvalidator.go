@@ -21,7 +21,7 @@ func logError(error types.MatchedRule) {
 	msg := error.ErrorLog()
 	fmt.Printf("[logError][%s] %s\n", error.Rule().Severity(), msg)
 }
-func (wafvalidator *WafValidator) ProcessRequest(request *model.Request) {
+func (wafvalidator *WafValidator) ProcessRequest(request *model.Request) *ValidatorResponse {
 	var id = request.Id
 	var coraza = *wafvalidator.waf
 	var transaction = coraza.NewTransactionWithID(id)
@@ -29,16 +29,20 @@ func (wafvalidator *WafValidator) ProcessRequest(request *model.Request) {
 	if transaction.IsRuleEngineOff() {
 		log.Printf("coraza is off")
 	}
-	httprequest, _ := request.ToHttpRequest()
-	for key, values := range httprequest.Header {
-		for _, v := range values {
-			transaction.AddRequestHeader(key, v)
-		}
+	for key, values := range *request.Headers {
+		transaction.AddRequestHeader(key, values)
+
 	}
+	transaction.ProcessURI(request.Url+"?"+request.Query, request.Method, "HTTP/"+request.Version)
+
 	transaction.WriteRequestBody(request.Body)
+
 	interruption := transaction.ProcessRequestHeaders()
 	log.Printf("Interruption %v", interruption)
 	interruption, err := transaction.ProcessRequestBody()
+	if interruption != nil {
+		return &ValidatorResponse{RuleID: interruption.RuleID}
+	}
 	log.Printf("Interruption %v", interruption)
 	log.Printf("Error %v", err)
 

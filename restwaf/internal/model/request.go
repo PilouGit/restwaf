@@ -24,18 +24,18 @@ type Request struct {
 	msg     *message.Message
 	app     string
 	Id      string
-	srcIp   net.IP
-	srcPort int
-	dstIp   net.IP
-	dstPort int
-	method  string
+	SrcIp   net.IP
+	SrcPort int
+	DstIp   net.IP
+	DstPort int
+	Method  string
 	path    string
-	query   string
-	version string
-	url     string
+	Query   string
+	Version string
+	Url     string
 	Body    []byte
 
-	headers     string
+	Headers     *map[string]string
 	httpRequest *http.Request
 }
 
@@ -46,17 +46,12 @@ func CreateRequest(message *message.Message) *Request {
 }
 func (request *Request) ToHttpRequest() (*http.Request, error) {
 	if request.httpRequest == nil {
-		result, _ := http.NewRequest(request.method, request.url, bytes.NewBuffer(request.Body))
+		result, _ := http.NewRequest(request.Method, request.Url, bytes.NewBuffer(request.Body))
 		request.httpRequest = result
-		headers := strings.Split(request.headers, "\r\n")
-
-		for i := 0; i < len(headers); i++ {
-			header := headers[i]
-			if strings.Contains(header, ":") {
-				couple := strings.Split(header, ":")
-				result.Header.Set(strings.TrimSpace(couple[0]), strings.TrimSpace(couple[1]))
-			}
+		for key, value := range *request.Headers {
+			result.Header.Set(key, value)
 		}
+
 	}
 
 	return request.httpRequest, nil
@@ -75,7 +70,7 @@ func (request *Request) Init() error {
 		return errors.New("  not found" + methodCte)
 	} else {
 		log.Printf(" method %v", method)
-		request.method = fmt.Sprint(method)
+		request.Method = fmt.Sprint(method)
 	}
 	url, found := request.msg.KV.Get("full_url")
 	if !found {
@@ -83,13 +78,23 @@ func (request *Request) Init() error {
 	} else {
 		log.Printf(" url %v", url)
 		if url != nil {
-			request.url = fmt.Sprint(url)
+			request.Url = fmt.Sprint(url)
 		}
 	}
+	version, found := request.msg.KV.Get("version")
+	if !found {
+		return errors.New("  not found url")
+	} else {
+		log.Printf(" version %v", url)
+		if url != nil {
+			request.Version = fmt.Sprint(version)
+		}
+	}
+
 	query, found := request.msg.KV.Get(queryCte)
 	if found {
 		log.Printf(" query %v", query)
-		request.query = fmt.Sprint(query)
+		request.Query = fmt.Sprint(query)
 	}
 	id, found := request.msg.KV.Get(idCte)
 	if !found {
@@ -111,9 +116,19 @@ func (request *Request) Init() error {
 		return errors.New("  not found" + headersCte)
 	} else {
 		if headers != nil {
-			request.headers = headers.(string)
+			request.Headers = new(map[string]string)
+			(*request.Headers) = make(map[string]string)
+			headerString := headers.(string)
+			headersSplited := strings.Split(headerString, "\r\n")
 
-			log.Printf(" headers  %v", string(request.headers))
+			for i := 0; i < len(headersSplited); i++ {
+				header := headersSplited[i]
+				if strings.Contains(header, ":") {
+					couple := strings.Split(header, ":")
+					(*request.Headers)[strings.TrimSpace(couple[0])] = strings.TrimSpace(couple[1])
+				}
+			}
+			log.Printf(" headers  %v", request.Headers)
 		}
 
 	}

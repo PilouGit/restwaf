@@ -21,15 +21,12 @@ func main() {
 	if err := a.Serve(listener); err != nil {
 		log.Printf("error agent serve: %+v\n", err)
 	}*/
-	var error = internal.InitConfig("/home/pilou/goprojects/restwaf/application.properties")
+	var application = new(internal.Application)
+	var error = application.InitFrom("/home/pilou/goprojects/restwaf/application.json")
 	if error != nil {
-		log.Panicf("Error %v", error)
+		log.Fatalf("Error %v", error)
 	}
 
-	application, error := internal.CreateRestWaf()
-	if error != nil {
-		log.Panicf("Error %v", error)
-	}
 	application.Start()
 }
 
