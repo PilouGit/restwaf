@@ -28,6 +28,7 @@ func (cacheConfiguration *CacheConfiguration) Validate() error {
 		if nbTransation < 1 {
 			return errors.New("nb transaction must be positive ")
 		}
+		cacheConfiguration.Nbtransaction = uint(nbTransation)
 
 	} else {
 		return errors.New("only gcache type is currently supported")

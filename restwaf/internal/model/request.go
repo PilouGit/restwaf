@@ -33,8 +33,10 @@ type Request struct {
 	query   string
 	version string
 	url     string
-	headers string
-	body    []byte
+	Body    []byte
+
+	headers     string
+	httpRequest *http.Request
 }
 
 func CreateRequest(message *message.Message) *Request {
@@ -42,18 +44,22 @@ func CreateRequest(message *message.Message) *Request {
 	request.msg = message
 	return request
 }
-func (request *Request) ToHttpRequesst() (*http.Request, error) {
-	result, error := http.NewRequest(request.method, request.url, bytes.NewBuffer(request.body))
-	headers := strings.Split(request.headers, "\r\n")
+func (request *Request) ToHttpRequest() (*http.Request, error) {
+	if request.httpRequest == nil {
+		result, _ := http.NewRequest(request.method, request.url, bytes.NewBuffer(request.Body))
+		request.httpRequest = result
+		headers := strings.Split(request.headers, "\r\n")
 
-	for i := 0; i < len(headers); i++ {
-		header := headers[i]
-		if strings.Contains(header, ":") {
-			couple := strings.Split(header, ":")
-			result.Header.Set(strings.TrimSpace(couple[0]), strings.TrimSpace(couple[1]))
+		for i := 0; i < len(headers); i++ {
+			header := headers[i]
+			if strings.Contains(header, ":") {
+				couple := strings.Split(header, ":")
+				result.Header.Set(strings.TrimSpace(couple[0]), strings.TrimSpace(couple[1]))
+			}
 		}
 	}
-	return result, error
+
+	return request.httpRequest, nil
 
 }
 func (request *Request) Init() error {
@@ -96,8 +102,8 @@ func (request *Request) Init() error {
 	if !found {
 		return errors.New("  not found" + bodyCte)
 	} else {
-		request.body = body.([]byte)
-		log.Printf(" body  %v", string(request.body))
+		request.Body = body.([]byte)
+		log.Printf(" body  %v", string(request.Body))
 
 	}
 	headers, found := request.msg.KV.Get(headersCte)
@@ -106,6 +112,7 @@ func (request *Request) Init() error {
 	} else {
 		if headers != nil {
 			request.headers = headers.(string)
+
 			log.Printf(" headers  %v", string(request.headers))
 		}
 

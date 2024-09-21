@@ -6,7 +6,7 @@ import (
 
 func TestInitConfig(t *testing.T) {
 	var engine = new(Engine)
-	var error = engine.CreateFromConfigurationFile("/home/pilou/goprojects/restwaf/application.properties")
+	var error = engine.CreateFromConfigurationFile("/home/pilou/goprojects/restwaf/application.json")
 	if error != nil {
 		t.Fatalf("Error %v", error)
 	}

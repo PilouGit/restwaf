@@ -1,19 +1,32 @@
 package engine
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"restwaf/internal/cache"
 	"restwaf/internal/config"
+	"restwaf/internal/model"
 	"restwaf/internal/validator"
+
+	"github.com/corazawaf/coraza/v3"
+	"github.com/corazawaf/coraza/v3/debuglog"
+	"github.com/corazawaf/coraza/v3/types"
+	"go.uber.org/zap"
 )
 
 type Engine struct {
 	configuration    *config.Configuration
 	requestCache     *cache.RequestGCache
 	openApiValidator *validator.OpenApiValidator
+	Waf              *validator.WafValidator
+	logger           *zap.Logger
 }
 
+func (engine *Engine) ProcessRequest(request *model.Request) {
+	engine.Waf.ProcessRequest(request)
+
+}
 func (engine *Engine) CreateFromConfigurationFile(filename string) error {
 
 	configuration := new(config.Configuration)
@@ -29,13 +42,45 @@ func (engine *Engine) CreateFromConfigurationFile(filename string) error {
 	return nil
 }
 func (engine *Engine) Init() error {
+	logger, _ := zap.NewProduction()
+	defer logger.Sync()
+	engine.logger = logger
 	var error = engine.initRequestCache()
 	if error != nil {
 		return error
 	}
 	error = engine.initRestWaf()
+	error = engine.initWaf()
+	if error != nil {
+		engine.logger.Error("unable to create RestWaf instance", zap.Error(error))
+		return error
+	}
 
 	return error
+}
+func logError(error types.MatchedRule) {
+	msg := error.ErrorLog()
+	fmt.Printf("[logError][%s] %s\n", error.Rule().Severity(), msg)
+}
+func (engine *Engine) initWaf() error {
+	var wafConfiguration = engine.configuration.WafConfiguration
+	if wafConfiguration.Enabled {
+		var conf = coraza.NewWAFConfig()
+		for _, directiveFromFile := range wafConfiguration.DirectivesFromFile {
+			conf.WithDirectivesFromFile(directiveFromFile)
+		}
+		conf.WithErrorCallback(logError)
+		conf.WithDebugLogger(debuglog.Default())
+		waf, err := coraza.NewWAF(conf)
+		if err != nil {
+			engine.logger.Error("unable to create waf instance", zap.Error(err))
+			return err
+		}
+		engine.Waf = new(validator.WafValidator)
+		engine.Waf.CreateWafValidator(&waf)
+
+	}
+	return nil
 }
 func (engine *Engine) initRequestCache() error {
 
