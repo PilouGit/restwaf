@@ -6,7 +6,9 @@ import (
 	"os"
 	"restwaf/internal/engine"
 	"restwaf/internal/model"
+	"restwaf/internal/validator"
 
+	"github.com/negasus/haproxy-spoe-go/action"
 	"github.com/negasus/haproxy-spoe-go/agent"
 	"github.com/negasus/haproxy-spoe-go/logger"
 	"github.com/negasus/haproxy-spoe-go/message"
@@ -50,17 +52,21 @@ func (application *Application) handler(req *request.Request) {
 		return
 	}
 	if messsage != nil {
-		application.processRequest(messsage)
-		//req.Actions.SetVar(action.ScopeSession, "ip_score", ipScore)
+		validadorresponse := application.processRequest(messsage)
+		if validadorresponse != nil {
+			req.Actions.SetVar(action.ScopeTransaction, "ruleid", validadorresponse.RuleID)
+			req.Actions.SetVar(action.ScopeTransaction, "action", "deny")
+
+		}
 	}
 }
 
-func (application *Application) processRequest(message *message.Message) {
+func (application *Application) processRequest(message *message.Message) *validator.ValidatorResponse {
 
 	request := model.CreateRequest(message)
 	error := request.Init()
 	if error != nil {
 		log.Printf("error agent serve: %+v\n", error)
 	}
-	application.engine.ProcessRequest(request)
+	return application.engine.ProcessRequest(request)
 }

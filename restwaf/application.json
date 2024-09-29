@@ -7,6 +7,15 @@
       "properties": {
         "nbtransaction": "20"
       }
+    },
+    "opensearch":
+    {
+      "url":["https://localhost:9200"],
+      "username":"admin",
+      "password":"Pilou123!",
+      "insecureskipverify":true,
+      "index":"restwaf"
+
     }
   },
   "openapi": {

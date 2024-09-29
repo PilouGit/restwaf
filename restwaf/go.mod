@@ -15,6 +15,7 @@ require (
 	github.com/magefile/mage v1.15.0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/negasus/haproxy-spoe-go v1.0.5 // indirect
+	github.com/opensearch-project/opensearch-go v1.1.0 // indirect
 	github.com/pb33f/libopenapi v0.16.10 // indirect
 	github.com/pb33f/libopenapi-validator v0.1.0 // indirect
 	github.com/petar-dambovaliev/aho-corasick v0.0.0-20240411101913-e07a1f0e8eb4 // indirect

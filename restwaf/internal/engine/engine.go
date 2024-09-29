@@ -7,6 +7,7 @@ import (
 	"restwaf/internal/cache"
 	"restwaf/internal/config"
 	"restwaf/internal/model"
+	"restwaf/internal/siem"
 	"restwaf/internal/validator"
 
 	"github.com/corazawaf/coraza/v3"
@@ -21,10 +22,11 @@ type Engine struct {
 	openApiValidator *validator.OpenApiValidator
 	Waf              *validator.WafValidator
 	logger           *zap.Logger
+	siem             *siem.Siem
 }
 
-func (engine *Engine) ProcessRequest(request *model.Request) {
-	engine.Waf.ProcessRequest(request)
+func (engine *Engine) ProcessRequest(request *model.Request) *validator.ValidatorResponse {
+	return engine.Waf.ProcessRequest(request)
 
 }
 func (engine *Engine) CreateFromConfigurationFile(filename string) error {
@@ -50,12 +52,21 @@ func (engine *Engine) Init() error {
 		return error
 	}
 	error = engine.initRestWaf()
-	error = engine.initWaf()
 	if error != nil {
 		engine.logger.Error("unable to create RestWaf instance", zap.Error(error))
 		return error
 	}
+	error = engine.initWaf()
 
+	if error != nil {
+		engine.logger.Error("unable to create Waf instance", zap.Error(error))
+		return error
+	}
+	error = engine.initSiem()
+	if error != nil {
+		engine.logger.Error("unable to create Siem instance", zap.Error(error))
+		return error
+	}
 	return error
 }
 func logError(error types.MatchedRule) {
@@ -94,6 +105,11 @@ func (engine *Engine) initRequestCache() error {
 	return nil
 }
 
+func (engine *Engine) initSiem() error {
+	engine.siem = siem.CreateSiem()
+	return engine.siem.Initialization(engine.configuration.GlobalConfiguration.OpenSearchConfiguration)
+
+}
 func (engine *Engine) initRestWaf() error {
 
 	var openApiConfiguration = engine.configuration.OpenApiConfiguration

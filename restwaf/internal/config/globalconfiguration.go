@@ -6,9 +6,10 @@ import (
 )
 
 type GlobalConfiguration struct {
-	Port               int                 `json:"port"  validate:"required"`
-	Adress             string              `json:"adress"  `
-	CacheConfiguration *CacheConfiguration `json:"cache"  validate:"required"`
+	Port                    int                      `json:"port"  validate:"required"`
+	Adress                  string                   `json:"adress"  `
+	CacheConfiguration      *CacheConfiguration      `json:"cache"  validate:"required"`
+	OpenSearchConfiguration *OpenSearchConfiguration `json:"opensearch"  validate:"required"`
 }
 
 func (globalConfiguration *GlobalConfiguration) GetAddress() string {
