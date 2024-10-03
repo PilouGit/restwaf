@@ -46,7 +46,7 @@ func CreateRequest(message *message.Message) *Request {
 }
 func (request *Request) ToHttpRequest() (*http.Request, error) {
 	if request.httpRequest == nil {
-		result, _ := http.NewRequest(request.Method, request.Url, bytes.NewBuffer(request.Body))
+		result, _ := http.NewRequest(request.Method, request.Url+"?"+request.Query, bytes.NewBuffer(request.Body))
 		request.httpRequest = result
 		for key, value := range *request.Headers {
 			result.Header.Set(key, value)

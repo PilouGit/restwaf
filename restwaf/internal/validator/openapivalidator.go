@@ -3,6 +3,7 @@ package validator
 import (
 	"log"
 	"restwaf/internal/cache"
+	"restwaf/internal/model"
 
 	"github.com/pb33f/libopenapi"
 	validator "github.com/pb33f/libopenapi-validator"
@@ -15,18 +16,37 @@ type OpenApiValidator struct {
 	ResponseValidator *validator.Validator
 }
 
-func (validator *OpenApiValidator) CreateOpenApiValidator(body []byte) error {
+func (openApiValidator *OpenApiValidator) CreateOpenApiValidator(body []byte) error {
 
 	document, docErrs := libopenapi.NewDocument(body)
 	if docErrs != nil {
 		return docErrs
 	}
-	validator.Document = &document
+	openApiValidator.Document = &document
+	validator, validatorErrs := validator.NewValidator(document)
+	if len(validatorErrs) > 0 {
+		return validatorErrs[0]
+	}
+	openApiValidator.RequestValidator = &validator
 
 	return nil
 
 }
+func (openApiValidator *OpenApiValidator) ProcessRequest(request *model.Request) *ValidatorResponse {
+	if openApiValidator.RequestValidator != nil {
+		requestValidator := *openApiValidator.RequestValidator
+		httpRequest, _ := request.ToHttpRequest()
+		requestValid, validationErrors := requestValidator.ValidateHttpRequest(httpRequest)
+		if !requestValid {
+			validationError := validationErrors[0]
+			errorMessage := validationError.Error()
+			openApiValidatorResponse := OpenApiValidatorResponse{Message: errorMessage}
+			return &ValidatorResponse{Action: Deny, OpenApiValidatorResponse: &openApiValidatorResponse, WafValidatorResponse: nil}
+		}
+	}
+	return nil
 
+}
 func (validator *OpenApiValidator) extractPathAndMethod() {
 	document := *(validator.Document)
 	v3model, errors := document.BuildV3Model()

@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"fmt"
 	"log"
 	"net"
 	"os"
@@ -29,9 +30,11 @@ func (application *Application) InitFrom(filename string) error {
 
 }
 func (application *Application) Start() {
-	log.Print("listen 3000")
+	configuration := application.engine.GetConfiguration()
+	log.Printf("listen %d", configuration.GlobalConfiguration.Port)
+	concatenated := fmt.Sprintf("%s:%d", configuration.GlobalConfiguration.Adress, configuration.GlobalConfiguration.Port)
 
-	listener, err := net.Listen("tcp4", "127.0.0.1:3000")
+	listener, err := net.Listen("tcp4", concatenated)
 	if err != nil {
 		log.Printf("error create listener, %v", err)
 		os.Exit(1)
@@ -54,7 +57,6 @@ func (application *Application) handler(req *request.Request) {
 	if messsage != nil {
 		validadorresponse := application.processRequest(messsage)
 		if validadorresponse != nil {
-			req.Actions.SetVar(action.ScopeTransaction, "ruleid", validadorresponse.RuleID)
 			req.Actions.SetVar(action.ScopeTransaction, "action", "deny")
 
 		}

@@ -13,12 +13,18 @@ const (
 	Redirect = "redirect"
 )
 
-type ValidatorResponse struct {
+type OpenApiValidatorResponse struct {
+	Message string
+}
+type WafValidatorResponse struct {
 	RuleID int
-
-	// drop, deny, redirect
-	Action ActionValidatorResponse
 
 	// Force this status code
 	Status int
+}
+type ValidatorResponse struct {
+	// drop, deny, redirect
+	Action                   ActionValidatorResponse
+	OpenApiValidatorResponse *OpenApiValidatorResponse
+	WafValidatorResponse     *WafValidatorResponse
 }

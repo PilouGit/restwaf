@@ -41,7 +41,8 @@ func (wafvalidator *WafValidator) ProcessRequest(request *model.Request) *Valida
 	log.Printf("Interruption %v", interruption)
 	interruption, err := transaction.ProcessRequestBody()
 	if interruption != nil {
-		return &ValidatorResponse{RuleID: interruption.RuleID, Action: Deny}
+		wafValidatorResponse := WafValidatorResponse{RuleID: interruption.RuleID, Status: interruption.Status}
+		return &ValidatorResponse{Action: Deny, OpenApiValidatorResponse: nil, WafValidatorResponse: &wafValidatorResponse}
 	}
 	log.Printf("Interruption %v", interruption)
 	log.Printf("Error %v", err)

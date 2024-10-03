@@ -3,8 +3,10 @@ package siem
 import (
 	"context"
 	"crypto/tls"
+	"encoding/json"
 	"net/http"
 	"restwaf/internal/config"
+	"restwaf/internal/validator"
 	"strings"
 
 	"github.com/opensearch-project/opensearch-go"
@@ -13,6 +15,7 @@ import (
 
 type Siem struct {
 	opensearch *opensearch.Client
+	indexName  string
 }
 
 func CreateSiem() *Siem {
@@ -32,6 +35,7 @@ func (siem *Siem) Initialization(configuration *config.OpenSearchConfiguration) 
 		return err
 	}
 	siem.opensearch = client
+	siem.indexName = configuration.Index
 	response, error := opensearchapi.IndicesExistsRequest{
 		Index: []string{configuration.Index},
 	}.Do(context.Background(), client)
@@ -57,4 +61,15 @@ func (siem *Siem) Initialization(configuration *config.OpenSearchConfiguration) 
 		println("%v", response)
 	}
 	return nil
+}
+
+func (siem *Siem) Publish(response *validator.ValidatorResponse) {
+	jsonStr, _ := (json.Marshal(response))
+
+	req := opensearchapi.IndexRequest{
+		Index: siem.indexName,
+		Body:  strings.NewReader(string(jsonStr)),
+	}
+	req.Do(context.Background(), siem.opensearch)
+
 }

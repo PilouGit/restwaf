@@ -25,8 +25,22 @@ type Engine struct {
 	siem             *siem.Siem
 }
 
+func (engine *Engine) GetConfiguration() *config.Configuration {
+	return engine.configuration
+}
 func (engine *Engine) ProcessRequest(request *model.Request) *validator.ValidatorResponse {
-	return engine.Waf.ProcessRequest(request)
+	validator := engine.Waf.ProcessRequest(request)
+	if validator != nil {
+		engine.siem.Publish(validator)
+		return validator
+	}
+	validator = engine.openApiValidator.ProcessRequest(request)
+	if validator != nil {
+		engine.siem.Publish(validator)
+		return validator
+	}
+
+	return nil
 
 }
 func (engine *Engine) CreateFromConfigurationFile(filename string) error {
